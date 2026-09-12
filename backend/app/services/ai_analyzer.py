@@ -1,5 +1,5 @@
 ﻿import json
-
+import re
 from google import genai
 
 from app.core.config import GEMINI_API_KEY
@@ -15,7 +15,7 @@ def analyze_resume(
             "matching_skills": [],
             "missing_skills": [],
             "recommendations": [
-                "Add GEMINI_API_KEY to backend/.env and restart the server."
+                "Add GEMINI_API_KEY to environment variables and restart the server."
             ],
             "summary": "AI analysis is not configured yet."
         }
@@ -53,15 +53,24 @@ Rules:
 """
 
     response = client.models.generate_content(
-       model="gemini-3.6-flash",
+        model="gemini-1.5-flash",  # Updated to supported Gemini model string
         contents=prompt,
     )
 
     text = response.text.strip()
 
-    if text.startswith("`"):
-        text = text.replace("`json", "")
-        text = text.replace("`", "")
-        text = text.strip()
+    # Safely extract JSON content even if wrapped in markdown code blocks
+    json_match = re.search(r'\{.*\}', text, re.DOTALL)
+    if json_match:
+        text = json_match.group(0)
 
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return {
+            "match_score": 0,
+            "matching_skills": [],
+            "missing_skills": [],
+            "recommendations": ["Failed to parse AI response. Please try again."],
+            "summary": "Parsing error occurred while processing resume."
+        }

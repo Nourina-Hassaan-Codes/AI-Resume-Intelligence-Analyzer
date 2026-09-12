@@ -1,4 +1,5 @@
-﻿const API_URL = "http://127.0.0.1:8000/api";
+﻿// const API_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export async function analyzeResume(
   resume,
@@ -12,13 +13,13 @@ export async function analyzeResume(
     jobDescription
   );
 
-  const response = await fetch(
-    `${API_URL}/analyze`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
+
+// Example fetch call
+const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+  method: "POST",
+  body: formData,
+});
+
 
   const data = await response.json();
 
